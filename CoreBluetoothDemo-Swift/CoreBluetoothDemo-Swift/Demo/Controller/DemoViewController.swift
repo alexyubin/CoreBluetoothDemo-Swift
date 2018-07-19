@@ -29,6 +29,12 @@ class DemoViewController: UIViewController {
     
     func setupUI() {
         
+        self.navigationItem.title = "Demo"
+        
+        
+        let item = UIBarButtonItem(title: "断开", style: .plain, target: self, action: #selector(disMiss))
+        self.navigationItem.rightBarButtonItem = item
+        
         sortArray.removeAllObjects()
         
         tableView = UITableView.init(frame: CGRect(x: 0, y: 64, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height - 64), style: UITableViewStyle.plain)
@@ -39,8 +45,11 @@ class DemoViewController: UIViewController {
         
         centralManager = CBCentralManager.init(delegate: self, queue: .main)
     }
-
-
+    
+    @objc func disMiss() {
+        centralManager?.cancelPeripheralConnection(connectedPeripheral!)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -82,8 +91,30 @@ extension DemoViewController : CBCentralManagerDelegate, CBPeripheralDelegate {
         model.RSSI = RSSI
         model.advertisementData = advertisementData as NSDictionary
         
-        self.sortArray.add(model)
-        self.tableView.reloadData()
+        
+        
+        var isExisted = false
+
+        if self.sortArray.count > 0 {
+
+            for i in 0..<self.sortArray.count {
+
+                let peripheralModel = self.sortArray[i] as! DemoModel
+                let per = peripheralModel.peripheral
+
+                if (per?.identifier == peripheral.identifier){
+                    isExisted = true
+                }
+            }
+        }
+
+
+        if !isExisted{
+            self.sortArray.add(model)
+        }
+
+        tableView.reloadData()
+        
         
     }
     
@@ -94,7 +125,6 @@ extension DemoViewController : CBCentralManagerDelegate, CBPeripheralDelegate {
         peripheral .discoverServices(nil)
         
         peripheral.delegate = self
-        self.title = peripheral.name
         centralManager? .stopScan()
         
         let alertController = UIAlertController.init(title: "已连接上 \(String(describing: peripheral.name))", message: nil, preferredStyle: .alert)
@@ -111,7 +141,7 @@ extension DemoViewController : CBCentralManagerDelegate, CBPeripheralDelegate {
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?){
         print("连接到名字为 \(String(describing: peripheral.name)) 的设备失败，原因是 \(String(describing: error?.localizedDescription))")
         
-        let alertController = UIAlertController.init(title: "连接到名字为 \(String(describing: peripheral.name)) 的设备失败，原因是 \(String(describing: error?.localizedDescription))", message: nil, preferredStyle: .alert)
+        let alertController = UIAlertController.init(title: "连接到名字为 \(String(describing: peripheral.name)) 的设备失败", message: nil, preferredStyle: .alert)
         
         let okAction = UIAlertAction(title: "知道了", style: .default, handler: {
             action in
@@ -120,12 +150,14 @@ extension DemoViewController : CBCentralManagerDelegate, CBPeripheralDelegate {
         self.present(alertController, animated: true, completion: nil)
         
     }
+    
+    
     //连接断开
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?){
         print("连接到名字为 \(String(describing: peripheral.name)) 的设备断开，原因是 \(String(describing: error?.localizedDescription))")
         
         
-        let alertController = UIAlertController.init(title: "连接到名字为 \(String(describing: peripheral.name)) 的设备断开，原因是 \(String(describing: error?.localizedDescription))", message: nil, preferredStyle: .alert)
+        let alertController = UIAlertController.init(title: "连接到名字为 \(String(describing: peripheral.name)) 的设备断开", message: nil, preferredStyle: .alert)
         
         let okAction = UIAlertAction(title: "知道了", style: .default, handler: {
             action in
@@ -134,6 +166,7 @@ extension DemoViewController : CBCentralManagerDelegate, CBPeripheralDelegate {
         self.present(alertController, animated: true, completion: nil)
         
     }
+
     
 }
 
