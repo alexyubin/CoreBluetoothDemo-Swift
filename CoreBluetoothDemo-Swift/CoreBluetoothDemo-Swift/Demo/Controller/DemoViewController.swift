@@ -46,8 +46,23 @@ class DemoViewController: UIViewController {
         centralManager = CBCentralManager.init(delegate: self, queue: .main)
     }
     
+    
     @objc func disMiss() {
-        centralManager?.cancelPeripheralConnection(connectedPeripheral!)
+        
+        if connectedPeripheral != nil {
+            centralManager?.cancelPeripheralConnection(connectedPeripheral!)
+            connectedPeripheral = nil
+        }else {
+            let alertController = UIAlertController.init(title: "请先连接蓝牙设备", message: nil, preferredStyle: .alert)
+            
+            let okAction = UIAlertAction(title: "知道了", style: .default, handler: {
+                action in
+            })
+            alertController.addAction(okAction)
+            self.present(alertController, animated: true, completion: nil)
+        }
+        
+        
     }
     
     override func didReceiveMemoryWarning() {
